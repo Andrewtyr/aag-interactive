@@ -25,11 +25,17 @@ stage=$(mktemp -d)
 trap 'rm -rf -- "$stage"' EXIT HUP INT TERM
 tar -tzf "$archive" > "$stage/members"
 if ! awk '
-  /^\.\// && $0 !~ /(^|\/)\.\.($|\/)$/ && $0 !~ /\/\.\.\// { next }
+  /^\.\// && $0 !~ /(^|\/)\.\.($|\/)$/ { next }
   { bad = 1 }
   END { exit bad }
 ' "$stage/members"; then
   echo 'Archive contains an unsafe path.' >&2
+  exit 1
+fi
+if tar -tvzf "$archive" | awk '{ kind = substr($1, 1, 1); if (kind != "-" && kind != "d") bad = 1 } END { exit bad }'; then
+  :
+else
+  echo 'Archive contains a link or an unsupported file type.' >&2
   exit 1
 fi
 tar -xzf "$archive" -C "$stage" --no-same-owner ./data
