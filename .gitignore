@@ -1,0 +1,9 @@
+node_modules/
+.npm-cache/
+apps/api/data/
+*.sqlite*
+uploads/
+backups/
+*.log
+.env
+.env.*

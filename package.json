@@ -1,0 +1,1 @@
+{"name":"aag-interactive","private":true,"version":"0.0.0","workspaces":["apps/*","packages/*"],"scripts":{"start":"node scripts/start-lan.mjs","start:lan":"node scripts/start-lan.mjs","test":"npm test --workspace @aag/api && npm test --workspace @aag/web","load:test":"node scripts/load-test.mjs"}}

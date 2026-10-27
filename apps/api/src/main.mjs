@@ -1,0 +1,20 @@
+import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { createStore } from './store.mjs';
+import { createApiServer } from './server.mjs';
+import { createLiveStore } from './live-store.mjs';
+import { createMaterialStore } from './material-store.mjs';
+import { createImportStore } from './import-store.mjs';
+
+const dataPath = resolve(process.env.AAG_DB_PATH ?? './data/aag.sqlite');
+const webRoot = resolve(import.meta.dirname, '../../web');
+const store = createStore(dataPath);
+const material = JSON.parse(readFileSync(resolve(import.meta.dirname, 'hospitality-standards.private.json'), 'utf8'));
+const materialStore = createMaterialStore(dataPath, material);
+const liveStore = createLiveStore(dataPath, material);
+const importStore = createImportStore(dataPath, resolve(process.env.AAG_UPLOAD_DIR ?? './data/uploads'));
+const server = createApiServer({ store, materialStore, liveStore, importStore, webRoot });
+const port = Number(process.env.PORT ?? 4180);
+const host = process.env.HOST ?? '127.0.0.1';
+server.listen(port, host, 2048, () => console.log(`ААГ Интерактив: http://${host}:${port} (данные: ${dataPath})`));
+for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => server.close(() => { importStore.close(); liveStore.close(); materialStore.close(); store.close(); process.exit(0); }));

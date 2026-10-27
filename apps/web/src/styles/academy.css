@@ -1,0 +1,108 @@
+/* Academy workspace: white surfaces, green actions, gold selection accents. */
+:root {
+  --aag-green: #006b40;
+  --aag-deep: #06452e;
+  --aag-gold: #b59345;
+  --aag-ink: #183b2d;
+  --aag-muted: #60766b;
+  --aag-line: #e0e8e2;
+  --aag-bg: #f5f7f4;
+  --aag-shadow: 0 8px 28px #063d2b08;
+}
+body { background: var(--aag-bg); }
+body > header {
+  border-top: 4px solid var(--aag-green);
+  border-bottom: 1px solid #e8dfca;
+  min-height: 82px;
+  gap: 20px;
+}
+header .logo { display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0; letter-spacing: -.025em; }
+header .logo::before {
+  content: ''; width: 46px; height: 46px; margin-right: 5px;
+  background: url('../../assets/academy-logo.png') center / contain no-repeat;
+  border-radius: 50%; flex-shrink: 0;
+}
+header nav { padding: 4px; border-radius: 12px; background: #f3f6f2; }
+header nav a { min-height: 39px; border-radius: 8px; }
+header nav a[aria-current] { background: white; color: var(--aag-deep); box-shadow: 0 2px 5px #163a2410, inset 0 -2px var(--aag-gold); }
+.nav-identity { background: #fffaf0; border: 1px solid #e9ddbf; color: #705a26; }
+.page-title, .heading { padding-bottom: 22px; border-bottom: 1px solid var(--aag-line); }
+.page-title h1, .heading h1 { letter-spacing: -.035em; }
+.panel { border-radius: 18px; }
+button, .button, .button-secondary { letter-spacing: .01em; }
+button:hover:not(:disabled), .button:hover { transform: none; }
+button:disabled { cursor: not-allowed; }
+.button-secondary { background: #fff!important; border-color: #cddbd1!important; }
+.button-secondary:hover:not(:disabled) { background: #edf5ef!important; }
+input:not([type=checkbox]):not([type=radio]):not([type=file]), select, textarea {
+  max-width: 100%; min-height: 42px; padding: 10px 12px;
+  border: 1px solid #ccd9d0; border-radius: 10px;
+  background: #fff; color: var(--aag-ink); font: inherit;
+}
+input[type=checkbox], input[type=radio] {
+  width: 18px; height: 18px; min-height: 0; accent-color: var(--aag-green); flex-shrink: 0;
+}
+.form label:has(>input[type=checkbox]), .form label:has(>input[type=radio]) { display: flex; align-items: center; gap: 9px; }
+.home-hero { background: linear-gradient(120deg,#06452e,#007347); border: 1px solid #00653b; border-radius: 24px; }
+.home-hero > div > small { color: #efdaa0; }
+.hero-card { transform: none; border-top: 4px solid var(--aag-gold); }
+.home-tile > span { color: var(--aag-green); background: #f0f5eb; border-radius: 12px; padding: 8px 12px; }
+.home-tile b { color: var(--aag-green); }
+#library-panel > .panel:first-child { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+#library-panel > .panel:first-child label { display: flex; align-items: center; gap: 12px; color: var(--aag-muted); font-weight: 600; }
+.material-card { border-top: 3px solid var(--aag-gold); padding: 24px; }
+.material-card::before { display: none; }
+.material-card h2 { line-height: 1.4; overflow-wrap: anywhere; }
+.card-actions { padding-top: 18px; border-top: 1px solid var(--aag-line); }
+.editor-tabs { display: inline-flex; padding: 5px; background: #e9eee8; border-radius: 13px; gap: 4px; }
+.editor-tabs button { border: 0; border-radius: 9px; min-height: 42px; background: transparent; color: var(--aag-muted); }
+.editor-tabs button[aria-selected=true] { background: #fff; color: var(--aag-deep); box-shadow: 0 2px 6px #103d2a12, inset 0 -3px var(--aag-gold); }
+.editor-toolbar { padding: 16px; gap: 16px; box-shadow: none; }
+.editor-toolbar > div { gap: 6px; padding-right: 16px; }
+.editor-toolbar small { color: #756130; letter-spacing: .09em; margin-bottom: 3px; }
+.editor-toolbar button, .editor-toolbar .button { min-height: 36px; padding: 7px 10px; font-size: 11px; }
+.slide-list, .slide-fields { padding: 18px; scrollbar-width: thin; scrollbar-color: #c5d3c7 transparent; }
+.slide-list h2, .slide-fields h2 { padding-bottom: 13px; border-bottom: 1px solid var(--aag-line); font-size: 14px; }
+.slide-thumb { border: 1px solid #dee6dc; border-left: 3px solid transparent; padding: 12px; box-shadow: none; }
+.slide-thumb.selected { border-color: #b59345; background: #faf7ee; box-shadow: inset 3px 0 var(--aag-gold); }
+.canvas-panel { padding: 20px; background: #e9eee9; border: 1px solid #d9e1d9; }
+.canvas { box-shadow: 0 12px 25px #163a2414; }
+.import-control { border-style: dashed; background: #f8faf6; font-size: 11px; }
+.interactive-editor { max-width: none; }
+.interactive-editor .form { max-width: 800px; }
+.interactive-layout > aside { border-top: 3px solid var(--aag-gold); }
+#save-status { font-size: 12px; }
+.host-grid > .panel { padding: 22px; }
+.slide-heading { margin-bottom: 14px; font-weight: 700; }
+.controls { flex-wrap: wrap; }
+.controls button { flex-shrink: 0; }
+#next, #open-question { box-shadow: 0 3px 10px #006b4018; }
+.presenter-connect { border-top: 3px solid var(--aag-gold); }
+.presenter-connect .code { font-variant-numeric: tabular-nums; }
+.presenter-side h3 { font-size: 14px; }
+.answer-row, .leader-row { border-color: var(--aag-line); }
+.detail { overflow-x: auto; }
+.detail table { border-collapse: collapse; width: 100%; }
+.detail table th { background: #edf3ec; }
+.detail table th, .detail table td { padding: 13px 16px; border-bottom: 1px solid var(--aag-line); text-align: left; }
+.participant-main .choice { border-width: 2px; }
+.participant-main .choice:focus-visible { outline-color: var(--aag-gold); }
+@media (max-width: 1100px) {
+  body > header { flex-wrap: wrap; padding-block: 14px; }
+  header nav { order: 3; flex-basis: 100%; }
+}
+@media (max-width: 700px) {
+  body > header { flex-direction: row; align-items: center; gap: 12px; }
+  header .logo { font-size: 16px; }
+  header .logo::before { width: 36px; height: 36px; }
+  header nav { overflow-x: auto; flex-wrap: nowrap; }
+  header nav a { font-size: 12px; padding-inline: 11px; }
+  .nav-identity { max-width: 100%; white-space: normal; }
+  .editor-toolbar > div { border-right: 0; padding-right: 0; }
+  .canvas-panel { padding: 10px; }
+  #library-panel > .panel:first-child label { flex-wrap: wrap; width: 100%; }
+  #material-search { width: 100%; }
+  .editor-tabs { display: flex; }
+  .heading-actions { flex-wrap: wrap; }
+  .controls button { flex: 1 1 140px; }
+}

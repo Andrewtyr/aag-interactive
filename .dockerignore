@@ -1,0 +1,10 @@
+node_modules
+.npm-cache
+.git
+.env*
+apps/api/data
+*.sqlite*
+uploads
+backups
+coverage
+*.log

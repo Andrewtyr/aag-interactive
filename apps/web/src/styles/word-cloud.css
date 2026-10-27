@@ -1,0 +1,16 @@
+.cloud-map{position:relative;width:100%;min-height:270px;margin:12px 0;overflow:hidden;isolation:isolate}
+.cloud-word{position:absolute;transform:translate(-50%,-50%);max-width:38%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--cloud-size);font-weight:800;line-height:1.12;color:#d8eddd;text-shadow:0 2px 6px #062e1c66;text-align:center}
+.cloud-word:nth-of-type(3n){color:#f0d69d}
+.cloud-word-center{z-index:2;max-width:70%;color:#fff!important;text-shadow:0 3px 12px #062e1c99}
+.cloud-more{position:absolute;bottom:0;right:0;color:#d8eddd;font-size:11px}
+@media(max-width:600px){.cloud-map{min-height:230px}.cloud-word{max-width:43%;font-size:min(var(--cloud-size,32px),9vw)!important}.cloud-word-center{max-width:75%;font-size:min(var(--cloud-size,48px),12vw)!important}}
+/* Make one/few answers prominent, then preserve room as distinct tags accumulate. */
+.cloud-map.cloud-sparse .cloud-word { max-width:62%; }
+.cloud-map.cloud-sparse .cloud-word-center { max-width:85%; }
+.cloud-map.cloud-medium .cloud-word { max-width:46%; }
+@media(max-width:600px) {
+  .cloud-map.cloud-sparse .cloud-word { font-size:min(var(--cloud-size,64px),18vw)!important; max-width:65%; }
+  .cloud-map.cloud-sparse .cloud-word-center { font-size:min(var(--cloud-size,82px),22vw)!important; max-width:85%; }
+  .cloud-map.cloud-medium .cloud-word { font-size:min(var(--cloud-size,40px),12vw)!important; }
+  .cloud-map.cloud-medium .cloud-word-center { font-size:min(var(--cloud-size,48px),14vw)!important; }
+}

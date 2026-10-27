@@ -1,0 +1,32 @@
+НАЧНИТЕ ЗДЕСЬ — запуск ААГ Интерактив на сервере
+
+Эти команды выполняются на двух разных устройствах.
+
+1. На вашем компьютере с Windows передайте этот ZIP-архив на VPS:
+   scp "D:\prezentacia\ИМЯ-ЭТОГО-АРХИВА.zip" user@SERVER_IP:~/
+   Замените имя архива, user и SERVER_IP на свои значения.
+
+2. Подключитесь к серверу Ubuntu по SSH:
+   ssh user@SERVER_IP
+
+3. Только в терминале сервера распакуйте архив и перейдите в папку deploy:
+   mkdir -p ~/aag-interactive
+   unzip ~/ИМЯ-ЭТОГО-АРХИВА.zip -d ~/aag-interactive
+   cd ~/aag-interactive/deploy
+   cp .env.server.example .env.server
+   nano .env.server
+
+   В nano замените DOMAIN=interactive.example.org на ваш домен.
+   Сохранение: Ctrl+O, Enter; выход: Ctrl+X.
+
+4. В том же терминале сервера запустите сайт:
+   docker compose --env-file .env.server up -d --build
+   docker compose --env-file .env.server ps
+
+5. На НОВОЙ пустой базе один раз создайте администратора:
+   docker compose --env-file .env.server exec app npm --workspace @aag/api run bootstrap-admin -- admin "Администратор"
+
+Откройте https://ВАШ-ДОМЕН/api/health — ожидается {"ok":true}.
+Для работы нужен VPS с Ubuntu, Docker Compose и доменом, направленным на IP сервера.
+Подробная инструкция, резервные копии и обновления: SERVER-SETUP.md и deploy/README.md.
+Текущие пользователи и материалы с компьютера НЕ входят в архив исходников; для их переноса нужна отдельная резервная копия.

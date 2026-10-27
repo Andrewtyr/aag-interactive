@@ -1,0 +1,29 @@
+name: aag-independent
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4180
+      NODE_ENV: production
+      TRUST_PROXY: '1'
+      PUBLIC_BASE_URL: ${AAG_PUBLIC_BASE_URL:?Set AAG_PUBLIC_BASE_URL to https://your-domain/aag/}
+      AAG_DB_PATH: /data/aag.sqlite
+      AAG_UPLOAD_DIR: /data/uploads
+      AAG_BACKUP_DIR: /data/backups
+    volumes:
+      - aag_data:/data
+    ports:
+      - '127.0.0.1:${AAG_LISTEN_PORT:-4280}:4180'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:4180/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  aag_data:
