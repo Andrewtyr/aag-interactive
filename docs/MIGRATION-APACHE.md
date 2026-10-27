@@ -17,30 +17,20 @@
 
 Linux, Git, Docker Engine с плагином Docker Compose, Apache с работающим HTTPS и доступный локальный порт (ниже используется 4280). Понадобится доступ к конфигурации действующего HTTPS `VirtualHost`. Если прежняя распаковка архива сломалась, не устанавливайте новую версию поверх неё: используйте отдельную папку `/opt/aag-interactive`.
 
-В командах замените `USER@NEW-SERVER` на SSH-доступ нового сервера, а `ВАШ-ДОМЕН` на реальный домен. Команды в блоках `sh` выполняются **на новом сервере**; блок `cmd` — **на компьютере с архивом**.
+В командах замените `ВАШ-ДОМЕН` на реальный домен. Все команды ниже выполняются **на новом сервере**.
 
-## Шаг 1. Передать архив и контрольную сумму
+## Шаг 1. Указать расположение полученного архива
 
-Создайте закрытую папку на новом сервере:
+Разместите полученные файлы на новом сервере в удобном закрытом каталоге. Их исходное расположение на другом компьютере не имеет значения. Файл контрольной суммы должен лежать **рядом с архивом** и называться точно как архив с добавлением `.sha256`.
 
-```sh
-mkdir -p "$HOME/aag-transfer"
-chmod 700 "$HOME/aag-transfer"
-```
-
-С компьютера с архивом передайте оба файла через WinSCP или выполните в обычной Windows CMD:
-
-```cmd
-C:\Windows\System32\OpenSSH\scp.exe D:\is2612-backup\aag-only-20261027T134327Z.tar.gz USER@NEW-SERVER:~/aag-transfer/
-C:\Windows\System32\OpenSSH\scp.exe D:\is2612-backup\aag-only-20261027T134327Z.tar.gz.sha256 USER@NEW-SERVER:~/aag-transfer/
-```
-
-На новом сервере:
+Укажите фактический полный путь к архиву на новом сервере. Например, если файлы положили в `/home/user/aag-transfer/`:
 
 ```sh
-ls -lh "$HOME/aag-transfer/"
-chmod 600 "$HOME/aag-transfer/"*
+ARCHIVE_PATH='/home/user/aag-transfer/aag-only-20261027T134327Z.tar.gz'
+ls -lh "$ARCHIVE_PATH" "$ARCHIVE_PATH.sha256"
 ```
+
+Замените пример на свой путь и имя архива. Используйте тот же сеанс терминала в шаге 3; при новом подключении задайте `ARCHIVE_PATH` снова. Ограничьте доступ к обоим файлам на сервере.
 
 Файл `.sha256` хранит прежний абсолютный путь к архиву. Поэтому обычная команда `sha256sum -c` после переноса может ошибиться из-за пути. Скрипт восстановления ниже сравнивает именно хеш файлов и работает в новом каталоге.
 
@@ -71,9 +61,9 @@ nano deploy/.env.apache
 Из папки `/opt/aag-interactive` выполняйте команды **по очереди**:
 
 ```sh
-sh scripts/restore-aag-data.sh "$HOME/aag-transfer/aag-only-20261027T134327Z.tar.gz" --check-only
+sh scripts/restore-aag-data.sh "$ARCHIVE_PATH" --check-only
 sudo docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml build app
-sudo sh scripts/restore-aag-data.sh "$HOME/aag-transfer/aag-only-20261027T134327Z.tar.gz"
+sudo sh scripts/restore-aag-data.sh "$ARCHIVE_PATH"
 sudo docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml up -d app
 sudo docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml ps
 curl -fsS http://127.0.0.1:4280/api/health
