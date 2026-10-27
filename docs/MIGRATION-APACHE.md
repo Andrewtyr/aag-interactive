@@ -1,36 +1,61 @@
-# Перенос ААГ на другой сервер с Apache
+# Перенос ААГ Интерактив на сервер с Apache
 
-Эта инструкция устанавливает **только ААГ Интерактив** рядом со старым сайтом. До проверки новой версии старый сайт, его база и Apache не меняются. Код лежит в публичном репозитории; база, пользователи, ответы и загруженные файлы передаются **отдельным закрытым архивом**.
+Эта инструкция для специалиста, который будет устанавливать **только ААГ Интерактив** на другой сервер, где уже работает старая версия сайта. Новую установку нужно сначала запустить отдельно и проверить. Старый сайт, его базу и повреждённую распаковку архива не удалять.
 
-## 1. Получить свежую копию с действующего сервера
+## Что заказчик должен передать
 
-На действующем сервере:
+1. Ссылку на публичный код: <https://github.com/Andrewtyr/aag-interactive>.
+2. Закрытый архив `aag-only-20261027T134327Z.tar.gz`.
+3. Его контрольную сумму `aag-only-20261027T134327Z.tar.gz.sha256`.
+4. Домен сайта и доступ к новому серверу по SSH с правом выполнять `sudo`.
+
+Два файла из пунктов 2–3 лежат у заказчика в `D:\is2612-backup\`. Передайте **оба файла** специалисту по защищённому каналу, например через SCP или WinSCP. Не загружайте их в GitHub, не прикладывайте к публичной заявке и не распаковывайте на компьютере заказчика.
+
+Архив содержит резервную копию базы SQLite `aag.sqlite` (пользователи, материалы, ответы), импортированные презентации, изображения, видео и список запрещённых слов облака тегов. Там есть и снимок кода, но для установки используйте **репозиторий GitHub**, а из архива восстанавливайте только папку `data`. Существующих пользователей и администратора повторно создавать не нужно.
+
+**Время копии:** 27 октября 2026 года, 13:43 UTC. Если после этого на действующем сайте появились новые пользователи, материалы или ответы, перед окончательным переключением запросите у заказчика новый экспорт и новую пару файлов. Поздние изменения иначе не попадут на новый сервер.
+
+## Что должно быть на новом сервере
+
+Linux, Git, Docker Engine с плагином Docker Compose, Apache с работающим HTTPS и доступный локальный порт (ниже используется 4280). Понадобится доступ к конфигурации действующего HTTPS `VirtualHost`. Если прежняя распаковка архива сломалась, не устанавливайте новую версию поверх неё: используйте отдельную папку `/opt/aag-interactive`.
+
+В командах замените `USER@NEW-SERVER` на SSH-доступ нового сервера, а `ВАШ-ДОМЕН` на реальный домен. Команды в блоках `sh` выполняются **на новом сервере**; блок `cmd` — **на компьютере заказчика**.
+
+## Шаг 1. Передать архив и контрольную сумму
+
+Создайте закрытую папку на новом сервере:
 
 ```sh
-cd /opt/is-2612-group
-sudo sh scripts/export-aag-only.sh
+mkdir -p "$HOME/aag-transfer"
+chmod 700 "$HOME/aag-transfer"
 ```
 
-Команда покажет два пути: `Archive:` и `Checksum:`. Оба файла нужно перенести на свой компьютер, затем на новый сервер по SSH/SCP. Пример (подставьте **свои** имена файлов, сервер и пользователя):
+С компьютера заказчика передайте оба файла через WinSCP или выполните в обычной Windows CMD:
+
+```cmd
+C:\Windows\System32\OpenSSH\scp.exe D:\is2612-backup\aag-only-20261027T134327Z.tar.gz USER@NEW-SERVER:~/aag-transfer/
+C:\Windows\System32\OpenSSH\scp.exe D:\is2612-backup\aag-only-20261027T134327Z.tar.gz.sha256 USER@NEW-SERVER:~/aag-transfer/
+```
+
+На новом сервере:
 
 ```sh
-scp USER@SOURCE:/home/USER/is2612-transfer/aag-only-YYYYMMDDTHHMMSSZ.tar.gz .
-scp USER@SOURCE:/home/USER/is2612-transfer/aag-only-YYYYMMDDTHHMMSSZ.tar.gz.sha256 .
-scp aag-only-YYYYMMDDTHHMMSSZ.tar.gz* USER@TARGET:/home/USER/
+ls -lh "$HOME/aag-transfer/"
+chmod 600 "$HOME/aag-transfer/"*
 ```
 
-Архив включает текущую SQLite-базу ААГ, импортированные презентации, медиа и список запрещённых слов. Он содержит личные данные и доступы пользователей: **не загружайте его в GitHub, не пересылайте в чат, храните с ограниченным доступом**. Старую копию, сделанную ранее, можно использовать для репетиции, а непосредственно перед переносом создайте новую.
+Файл `.sha256` хранит прежний абсолютный путь к архиву. Поэтому обычная команда `sha256sum -c` после переноса может ошибиться из-за пути. Скрипт восстановления ниже сравнивает именно хеш файлов и работает в новом каталоге.
 
-## 2. Установить код отдельно от старого сайта
+## Шаг 2. Установить код рядом со старым сайтом
 
-На новом сервере нужны Docker Engine с Compose, Git и работающий Apache с HTTPS. Подключитесь к серверу и проверьте свободный локальный порт:
+Проверьте свободный локальный порт и активный HTTPS `VirtualHost`:
 
 ```sh
 sudo ss -ltnp | grep ':4280 ' || true
 sudo apache2ctl -S
 ```
 
-Если порт 4280 занят, выберите другой в `deploy/.env.apache`. Клонируйте репозиторий **в новую папку**, не поверх старой распаковки:
+Если первая команда ничего не вывела, порт 4280 свободен. Если занят, позже задайте другой порт в `deploy/.env.apache`. Клонируйте код в **новую папку**:
 
 ```sh
 cd /opt
@@ -41,45 +66,56 @@ cp deploy/example.env deploy/.env.apache
 nano deploy/.env.apache
 ```
 
-В `AAG_PUBLIC_BASE_URL` укажите окончательный HTTPS-адрес с `/aag/` в конце. `AAG_LISTEN_PORT` должен быть свободен. Файл `deploy/.env.apache` не добавляется в Git. Новый Compose-проект называется `aag-independent` и создаёт собственный том `aag-independent_aag_data`; он не использует старый том или базу.
+В файле укажите `AAG_PUBLIC_BASE_URL=https://ВАШ-ДОМЕН/aag/` и свободный `AAG_LISTEN_PORT=4280`. Завершающий `/` у адреса нужен. Эта установка создаёт отдельный Compose-проект `aag-independent` и том `aag-independent_aag_data`. Существующие контейнеры и базы старого сайта она не использует.
 
-## 3. Проверить архив и восстановить базу
+## Шаг 3. Проверить архив, восстановить базу, запустить ААГ
 
-Скопируйте два файла архива в закрытую папку на новом сервере. Находясь в `/opt/aag-interactive`, выполните:
+Из папки `/opt/aag-interactive` выполняйте команды **по очереди**:
 
 ```sh
-sh scripts/restore-aag-data.sh /home/USER/aag-only-YYYYMMDDTHHMMSSZ.tar.gz --check-only
-docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml build app
-sh scripts/restore-aag-data.sh /home/USER/aag-only-YYYYMMDDTHHMMSSZ.tar.gz
-docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml up -d app
-docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml ps
+sh scripts/restore-aag-data.sh "$HOME/aag-transfer/aag-only-20261027T134327Z.tar.gz" --check-only
+sudo docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml build app
+sudo sh scripts/restore-aag-data.sh "$HOME/aag-transfer/aag-only-20261027T134327Z.tar.gz"
+sudo docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml up -d app
+sudo docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml ps
 curl -fsS http://127.0.0.1:4280/api/health
 ```
 
-Подставьте выбранный порт вместо 4280. В ответе `/api/health` ожидается `{"ok":true}`. Скрипт проверяет SHA-256, структуру архива и `PRAGMA integrity_check` базы. Если в новом томе уже есть `aag.sqlite`, восстановление останавливается и **не перезаписывает** его. Для повторной попытки сначала разберите причину ошибки и сохраните имеющийся том; команду `down -v` не используйте.
+Ожидаемые результаты: после первой команды — `Archive checksum and structure: OK`, после восстановления — `AAG data restored into independent volume.`, после `curl` — `{"ok":true}`. Если порт изменён, подставьте его в `curl`. Контейнер должен быть `healthy`. Скрипт проверяет SHA-256, состав архива и `PRAGMA integrity_check` SQLite. Если целевая база уже существует, он **откажется её перезаписывать**. Команду `down -v` не используйте.
 
-## 4. Подключить Apache после проверки
+Пока Apache не переключён, ААГ доступен только на `127.0.0.1:4280` самого нового сервера. Если хотя бы одна проверка не прошла, **Apache не меняйте**.
 
-Откройте конфигурацию **действующего HTTPS VirtualHost**. Поставьте эти правила **перед** общим `ProxyPass / ...` (если он есть):
+## Шаг 4. Переключить только `/aag/` в Apache
+
+Найдите активный HTTPS `VirtualHost` нужного домена с помощью `sudo apache2ctl -S` и сделайте резервную копию его конфигурационного файла. Если в нём уже есть старые правила `/aag/`, замените **только их**. Добавьте внутрь `VirtualHost` следующий фрагмент **перед** общим `ProxyPass / ...`, если он есть:
 
 ```apache
 ProxyPreserveHost On
 RequestHeader set X-Forwarded-Proto "https"
+RedirectMatch ^/aag$ /aag/
 ProxyPass        /aag/ http://127.0.0.1:4280/
 ProxyPassReverse /aag/ http://127.0.0.1:4280/
 ```
 
-Включите модули `proxy`, `proxy_http`, `headers`, проверьте конфигурацию и только затем перечитайте Apache:
+Если выбран другой порт, замените 4280 в обоих правилах. Не заменяйте весь действующий файл `VirtualHost` этим фрагментом. После правки:
 
 ```sh
 sudo a2enmod proxy proxy_http headers
 sudo apache2ctl configtest
 sudo systemctl reload apache2
-curl -fsS https://YOUR-DOMAIN/aag/api/health
+curl -fsS https://ВАШ-ДОМЕН/aag/api/health
 ```
 
-Проверьте вход администратора, библиотеку, показ с QR, ответ с телефона, отчёт и импорт PPTX/PDF. Если старая версия ААГ уже была опубликована на `/aag/`, замените только её старые правила прокси после проверки нового контейнера. Пути и настройки других разделов сайта не трогайте. Если при предыдущей распаковке что-то сломалось, не распаковывайте архив поверх той папки; сохраните её для диагностики.
+`configtest` должен показать `Syntax OK`; при ошибке **не перечитывайте Apache**. Публичный `curl` должен вернуть `{"ok":true}`. Затем проверьте в браузере вход существующего администратора, библиотеку, импорт PPTX/PDF, показ с QR, подключение участника и отчёт. Остальные разделы старого сайта должны открываться как раньше.
 
-## Обновление и резервные копии
+## Если возникла ошибка
 
-Для обновления кода: `git pull --ff-only`, затем `docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml up -d --build app`. Постоянный том с данными сохраняется. Перед обновлением сделайте резервную копию через `docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml exec -T app npm --workspace @aag/api run backup`. Копия сохраняется внутри тома `/data/backups`; для защиты от потери сервера копируйте её и `/data/uploads` за пределы VPS.
+- Контрольная сумма не совпала: передайте архив и `.sha256` повторно. Не восстанавливайте повреждённый архив.
+- `Target database already exists`: сохраните том и разберитесь, что осталось от предыдущей попытки. Скрипт существующую базу не заменил.
+- Локальный `curl` не отвечает: проверьте `sudo docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml ps` и `sudo docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml logs --tail=100 app`. Apache пока не трогайте.
+- Локальная проверка прошла, но публичный адрес не работает: проверьте порядок правил `ProxyPass`, порт и нужный HTTPS `VirtualHost`.
+- После правки Apache возникла проблема: верните сохранённую конфигурацию `VirtualHost`, проверьте `sudo apache2ctl configtest` и только при `Syntax OK` выполните `sudo systemctl reload apache2`. Старую папку и базу до приёмки новой установки не удаляйте.
+
+## Следующие обновления
+
+Код обновляется в `/opt/aag-interactive`: `git pull --ff-only`, затем `sudo docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml up -d --build app`. Данные находятся в постоянном томе. Перед обновлением создайте резервную копию: `sudo docker compose --env-file deploy/.env.apache -f deploy/compose.apache.yaml exec -T app npm --workspace @aag/api run backup`. Копию из `/data/backups` и медиа нужно регулярно сохранять **за пределами VPS**.
